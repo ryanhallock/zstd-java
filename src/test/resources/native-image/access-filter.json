@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "org.opentest4j.**"},
+    {"excludeClasses": "kotlin.**"},
+    {"excludeClasses": "sun.**"},
+    {"excludeClasses": "jdk.internal.**"}
+  ],
+  "regexRules": [
+    {"excludeClasses": "dev\\.hallock\\.zstd\\..*Test$"},
+    {"includeClasses": "dev\\.hallock\\.zstd\\..*"}
+  ]
+}
