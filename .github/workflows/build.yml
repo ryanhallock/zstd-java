@@ -13,6 +13,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v5
+      - name: Install zstd
+        run: sudo apt-get install -y zstd
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
