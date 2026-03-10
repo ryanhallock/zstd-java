@@ -1,6 +1,9 @@
 
-package dev.hallock.zstd;
+package dev.hallock.zstd.test;
 
+import dev.hallock.zstd.Zstd;
+import dev.hallock.zstd.ZstdCompressionContext;
+import dev.hallock.zstd.ZstdException;
 import org.junit.jupiter.api.Test;
 
 import java.lang.foreign.Arena;

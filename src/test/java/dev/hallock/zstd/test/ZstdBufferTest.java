@@ -1,5 +1,6 @@
-package dev.hallock.zstd;
+package dev.hallock.zstd.test;
 
+import dev.hallock.zstd.*;
 import org.junit.jupiter.api.Test;
 
 import java.lang.foreign.Arena;
@@ -21,7 +22,7 @@ class ZstdBufferTest {
             buffer.size(50);
             assertEquals(50, buffer.size());
             
-            assertNotNull(buffer.input());
+            assertNotNull(buffer.source());
         }
     }
 
@@ -37,7 +38,7 @@ class ZstdBufferTest {
             buffer.size(60);
             assertEquals(60, buffer.size());
             
-            assertNotNull(buffer.output());
+            assertNotNull(buffer.destination());
         }
     }
 

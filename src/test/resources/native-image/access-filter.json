@@ -7,7 +7,7 @@
     {"excludeClasses": "jdk.internal.**"}
   ],
   "regexRules": [
-    {"excludeClasses": "dev\\.hallock\\.zstd\\..*Test$"},
+    {"excludeClasses": "dev\\.hallock\\.zstd\\.test\\..*Test$"},
     {"includeClasses": "dev\\.hallock\\.zstd\\..*"}
   ]
 }

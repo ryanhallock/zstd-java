@@ -1,5 +1,7 @@
-package dev.hallock.zstd;
+package dev.hallock.zstd.test;
 
+import dev.hallock.zstd.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.foreign.Arena;
@@ -13,7 +15,7 @@ class ZstdDirectiveTest {
 
     @Test
     void testEndDirectiveValues() {
-        assertEquals(0, ZstdEndDirective.CONTINUE.value());
+        Assertions.assertEquals(0, ZstdEndDirective.CONTINUE.value());
         assertEquals(1, ZstdEndDirective.FLUSH.value());
         assertEquals(2, ZstdEndDirective.END.value());
     }
@@ -32,7 +34,7 @@ class ZstdDirectiveTest {
 
     @Test
     void testResetDirectiveValues() {
-        assertEquals(0, ZstdResetDirective.NONE.value());
+        Assertions.assertEquals(0, ZstdResetDirective.NONE.value());
         assertEquals(1, ZstdResetDirective.SESSION_ONLY.value());
         assertEquals(2, ZstdResetDirective.PARAMETERS.value());
         assertEquals(3, ZstdResetDirective.SESSION_AND_PARAMETERS.value());

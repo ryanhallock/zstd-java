@@ -1,10 +1,10 @@
 plugins {
-    id("java-library")
-    id("de.infolektuell.jextract") version "1.3.0"
+    `java-library`
+    alias(libs.plugins.jextract)
 }
 
 group = "dev.hallock.zstd"
-version = "0.1-SNAPSHOT"
+version = findProperty("version") ?: "dev"
 
 repositories {
     mavenCentral()
@@ -16,7 +16,7 @@ java {
 }
 
 dependencies {
-    api("org.jspecify:jspecify:1.0.0")
+    api(libs.jspecify)
 }
 
 jextract.libraries {

@@ -1,5 +1,8 @@
-package dev.hallock.zstd;
+package dev.hallock.zstd.test;
 
+import dev.hallock.zstd.Zstd;
+import dev.hallock.zstd.ZstdException;
+import dev.hallock.zstd.ZstdResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

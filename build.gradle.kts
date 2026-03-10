@@ -1,34 +1,38 @@
 plugins {
-    id("java-library")
-    id("org.graalvm.buildtools.native") version "0.11.2"
+    `java-library`
+    alias(libs.plugins.graalvm.buildtools)
 }
 
 group = "dev.hallock.zstd"
-version = "0.1-SNAPSHOT"
+version = findProperty("version") ?: "dev"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    api("org.jspecify:jspecify:1.0.0")
+    api(libs.jspecify)
     api(project(":bindings"))
-    testImplementation(platform("org.junit:junit-bom:6.0.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.test {
     useJUnitPlatform()
-    jvmArgs("--enable-native-access=dev.hallock.zstd.bindings");
+    jvmArgs("--enable-native-access=dev.hallock.zstd.bindings")
 }
-
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(25)
     modularity.inferModulePath = true
 }
 
+tasks.compileJava {
+    options.compilerArgs.add("-Xlint:all")
+    options.compilerArgs.add("-Werror")
+    options.encoding = "UTF-8"
+}
 
 graalvmNative {
     agent {
@@ -50,7 +54,7 @@ graalvmNative {
         binaries {
             named("test") {
                 buildArgs.add("-O0")
-                jvmArgs.add("--enable-native-access=dev.hallock.zstd.bindings")
+                jvmArgs.add("--enable-native-access=ALL-UNNAMED") //TODO figure out why this isn't using modules
             }
         }
     }

@@ -1,5 +1,6 @@
-package dev.hallock.zstd;
+package dev.hallock.zstd.test;
 
+import dev.hallock.zstd.*;
 import org.junit.jupiter.api.Test;
 
 import java.lang.foreign.Arena;

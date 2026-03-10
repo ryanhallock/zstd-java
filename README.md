@@ -1,6 +1,14 @@
 # zstd-java
 
-Java bindings for the Zstandard compression library. Its meant to replace the use of JNI with FFM.
+Java bindings for the Zstandard compression library.
+
+### Provides
+- `dev.hallock.zstd` is higher level bindings (Module)
+- `dev.hallock.zstd.bindings` the underlying native bindings (Module)
+
+### Dependencies
+- Java 25 or higher
+- Zstandard library (zstd)
 
 ### Usage
 Adding to Gradle (kts):
@@ -10,12 +18,16 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.hallock.zstd:zstd:0.1.0")
+    implementation("dev.hallock.zstd:zstd:<version>")
 }
 ```
+where `<version>` is the latest tag.
 
-### Java
-Requires Java 25 and will target LTS releases.
+### Runtime
+Ideally you want your project to be using JPMS as running on the module path allows nicer syntax to open native access. 
+`--enable-native-access=dev.hallock.zstd.bindings` should be used to allow native access to the native Zstandard library.
+
+Running in the unnamed module should be supported but is not recommended.
 
 #### Resources
 - [Zstandard](https://facebook.github.io/zstd/doc/api_manual_latest.html)
@@ -24,8 +36,8 @@ Requires Java 25 and will target LTS releases.
 
 <details>
 <summary>AI Disclosure</summary>
-AI was used to generate the Demo example, and most of the tests. My philosophy is that AI generated tests are slightly better coverage than no coverage. 
-This may change in the future and is the only place(s) that is acceptable usage.
+AI was used to generate most of the tests. My philosophy is that AI generated tests are slightly better coverage than no coverage. 
+This should change in the future and is the only place that is acceptable usage.
 </details>
 
 
