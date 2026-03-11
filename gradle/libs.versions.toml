@@ -3,6 +3,7 @@ graalvm-buildtools = "0.11.5"
 jspecify = "1.0.0"
 junit = "6.0.3"
 jextract = "1.4.0"
+maven-publish = "0.36.0"
 
 [libraries]
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
@@ -14,3 +15,4 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 [plugins]
 graalvm-buildtools = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-buildtools" }
 jextract = { id = "de.infolektuell.jextract", version.ref = "jextract"}
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }

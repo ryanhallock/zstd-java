@@ -16,3 +16,5 @@ Support bindings separately to allow implementations that just consume the jextr
 1.0 Will not be tagged until all TODOS are addressed, and Streaming no longer can do out of bound accesses
 
 Consider splitting API into dev.hallock.zstd.api to use services pro
+
+Unify GitHub common workflow actions steps

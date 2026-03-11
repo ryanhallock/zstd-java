@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     alias(libs.plugins.graalvm.buildtools)
+    alias(libs.plugins.maven.publish)
 }
 
 group = "dev.hallock.zstd"
@@ -60,3 +61,33 @@ graalvmNative {
     }
 }
 
+mavenPublishing {
+    publishToMavenCentral(automaticRelease = false)
+    signAllPublications()
+
+    pom {
+        name.set("zstd-java")
+        description.set("Java (FFM) API for Zstandard (zstd)")
+        inceptionYear.set("2026")
+        url.set("https://github.com/ryanhallock/zstd-java/")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("ryanhallock")
+                name.set("Ryan Hallock")
+                url.set("https://github.com/ryanhallock/")
+            }
+        }
+        scm {
+            url.set("https://github.com/ryanhallock/zstd-java/")
+            connection.set("scm:git:git://github.com/ryanhallock/zstd-java.git")
+            developerConnection.set("scm:git:ssh://git@github.com/ryanhallock/zstd-java.git")
+        }
+    }
+}
