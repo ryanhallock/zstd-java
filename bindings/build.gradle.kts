@@ -23,7 +23,6 @@ jextract.libraries {
     val zstd by registering {
         header = project.file("src/c/header.h")
         useSystemLoadLibrary = true
-        //libraries.add("zstd")
 
         targetPackage = "dev.hallock.zstd.bindings"
         headerClassName = "ZSTD_h"

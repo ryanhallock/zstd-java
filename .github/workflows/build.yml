@@ -11,10 +11,18 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      ZSTD_VERSION: v1.5.7
     steps:
       - uses: actions/checkout@v5
-      - name: Install libzstd
-        run: sudo apt-get install -y libzstd1 libzstd-dev
+      - name: Install zstd from source
+        run: |
+          git clone --branch "$ZSTD_VERSION" --depth 1 https://github.com/facebook/zstd.git zstd
+          cd zstd
+          make -j$(nproc)
+          sudo make PREFIX=/usr install
+          sudo ldconfig
+          cd ..
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
