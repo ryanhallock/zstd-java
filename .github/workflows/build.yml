@@ -13,7 +13,7 @@ jobs:
     env:
       ZSTD_VERSION: v1.5.7
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install zstd from source
         run: |
           git clone --branch "$ZSTD_VERSION" --depth 1 https://github.com/facebook/zstd.git zstd
