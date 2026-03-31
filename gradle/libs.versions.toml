@@ -1,5 +1,5 @@
 [versions]
-graalvm-buildtools = "0.11.5"
+graalvm-buildtools = "1.0.0"
 jspecify = "1.0.0"
 junit = "6.0.3"
 jextract = "1.4.0"
