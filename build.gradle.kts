@@ -35,6 +35,11 @@ tasks.compileJava {
     options.encoding = "UTF-8"
 }
 
+tasks.javadoc {
+    val options = options as StandardJavadocDocletOptions
+    options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
+}
+
 graalvmNative {
     agent {
         enabled.set(true)
