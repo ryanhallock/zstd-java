@@ -45,7 +45,8 @@ class ZstdBufferTest {
     @Test
     void testInputBufferInStream() throws Exception {
         try (Arena arena = Arena.ofConfined();
-             ZstdCompressionStream stream = new ZstdCompressionStream(Zstd.defaultCompressionLevel())) {
+            ZstdCompressionContext stream = new ZstdCompressionContext()) {
+            stream.parameter(ZstdCompressionParameter.COMPRESSION_LEVEL, Zstd.defaultCompressionLevel());
 
             MemorySegment input = arena.allocate(1000);
             MemorySegment output = arena.allocate(2000);
@@ -57,7 +58,7 @@ class ZstdBufferTest {
             inBuf.position(0);
             outBuf.position(0);
             
-            stream.compressionStream(outBuf, inBuf);
+            stream.compressStream(outBuf, inBuf, ZstdEndDirective.END);
             
             assertTrue(inBuf.position() >= 0);
             assertTrue(outBuf.position() >= 0);
@@ -67,7 +68,7 @@ class ZstdBufferTest {
     @Test
     void testOutputBufferInStream() throws Exception {
         try (Arena arena = Arena.ofConfined();
-             ZstdDecompressionStream stream = new ZstdDecompressionStream()) {
+             ZstdDecompressionContext stream = new ZstdDecompressionContext()) {
             
             byte[] compressedData = compressTestData();
             MemorySegment input = arena.allocate(compressedData.length);
@@ -82,7 +83,7 @@ class ZstdBufferTest {
             outBuf.position(0);
             outBuf.size(1000);
             
-            stream.decompressStream(outBuf, inBuf);
+            assertInstanceOf(ZstdResult.Ok.class, stream.decompressStream(outBuf, inBuf));
             
             assertTrue(outBuf.position() > 0);
         }

@@ -48,6 +48,12 @@ public final class ZstdDecompressionContext implements AutoCloseable {
         return ZstdResult.from(ZSTD_h.ZSTD_DCtx_setParameter(this.dctx, parameter.value(), value));
     }
 
+    public ZstdResult decompressStream(ZstdOutputBuffer outBuf, ZstdInputBuffer inBuf) {
+        Objects.requireNonNull(outBuf, "outBuf");
+        Objects.requireNonNull(inBuf, "inBuf");
+        return ZstdResult.from(ZSTD_h.ZSTD_decompressStream(this.dctx, outBuf.output(), inBuf.input()));
+    }
+
     @Override
     public void close() throws ZstdException {
         ZstdResult.check(ZSTD_h.ZSTD_freeDCtx(this.dctx));

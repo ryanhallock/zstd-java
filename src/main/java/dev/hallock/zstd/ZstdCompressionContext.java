@@ -12,6 +12,7 @@ public final class ZstdCompressionContext implements AutoCloseable {
         this.cctx = ZSTD_h.ZSTD_createCCtx();
     }
 
+    /// @apiNote Uses compress2
     public ZstdResult compress(MemorySegment dst, long dstCapacity, MemorySegment src, long srcSize) {
         Objects.requireNonNull(dst, "dst");
         if (dstCapacity > dst.byteSize())
@@ -22,6 +23,7 @@ public final class ZstdCompressionContext implements AutoCloseable {
         return ZstdResult.from(ZSTD_h.ZSTD_compress2(this.cctx, dst, dstCapacity, src, srcSize));
     }
 
+    /// @apiNote Uses compressStream2
     public ZstdResult compressStream(ZstdOutputBuffer output, ZstdInputBuffer input, ZstdEndDirective endDirective) {
         Objects.requireNonNull(output, "output");
         Objects.requireNonNull(input, "input");
