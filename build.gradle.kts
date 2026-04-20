@@ -77,9 +77,9 @@ mavenPublishing {
         url.set("https://github.com/ryanhallock/zstd-java/")
         licenses {
             license {
-                name.set("The Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                name.set("The MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("https://opensource.org/licenses/MIT")
             }
         }
         developers {
