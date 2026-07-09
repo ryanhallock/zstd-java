@@ -14,7 +14,8 @@ updates:
       prefix: "chore"
 
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5

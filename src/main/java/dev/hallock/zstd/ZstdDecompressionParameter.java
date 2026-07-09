@@ -1,25 +1,49 @@
 package dev.hallock.zstd;
 
 import dev.hallock.zstd.bindings.ZSTD_h;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
-import java.lang.foreign.SegmentAllocator;
-
+/**
+ * Configuration parameters for Zstd decompression. These correspond to ZSTD_dParameter options in
+ * the native library.
+ *
+ * @implNote The numeric values are part of the frozen zstd ABI and are hardcoded here so that
+ *     loading this class does not force the native library to load.
+ */
 public enum ZstdDecompressionParameter {
-    WINDOW_LOG_MAX(ZSTD_h.ZSTD_d_windowLogMax()),
-    //TODO experimental
-    ;
+  /**
+   * Maximum allowed window log for decompression, expressed as a power of 2 (log2). Prevents
+   * allocation of excessive native memory when decompressing malformed or malicious frames with
+   * abnormally large window requirements.
+   */
+  WINDOW_LOG_MAX(100);
 
-    private final int value;
+  private final int value;
 
-    ZstdDecompressionParameter(int value) {
-        this.value = value;
+  ZstdDecompressionParameter(int value) {
+    this.value = value;
+  }
+
+  /**
+   * Returns the raw integer value associated with this parameter.
+   *
+   * @return the raw parameter value
+   */
+  public int value() {
+    return value;
+  }
+
+  /**
+   * Retrieves the supported bounds for this parameter.
+   *
+   * @return the parameter bounds
+   * @throws ZstdException if a native error occurs while querying bounds
+   */
+  public ZstdParameterBounds bounds() {
+    try (Arena arena = Arena.ofConfined()) {
+      MemorySegment boundsSeg = ZSTD_h.ZSTD_dParam_getBounds(arena, this.value);
+      return ZstdParameterBounds.fromNative(boundsSeg);
     }
-
-    int value() {
-        return value;
-    }
-
-    public ZstdParameterBounds bounds(SegmentAllocator allocator) {
-        return new ZstdParameterBounds(ZSTD_h.ZSTD_dParam_getBounds(allocator, this.value));
-    }
+  }
 }

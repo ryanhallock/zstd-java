@@ -27,7 +27,10 @@ public class ZSTD_h$shared {
     public static final ValueLayout.OfDouble C_DOUBLE = (ValueLayout.OfDouble) Linker.nativeLinker().canonicalLayouts().get("double");
     public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker().canonicalLayouts().get("void*"))
             .withTargetLayout(MemoryLayout.sequenceLayout(java.lang.Long.MAX_VALUE, C_CHAR));
-    public static final ValueLayout.OfLong C_LONG = (ValueLayout.OfLong) Linker.nativeLinker().canonicalLayouts().get("long");
+    // Post-processed by generateZstdBindings in bindings/build.gradle.kts: zstd's ABI uses C long
+    // only via size_t, which is 64-bit on every supported platform, and the canonical-layout cast
+    // breaks on LLP64 (Windows), where canonical "long" is a 32-bit ValueLayout.OfInt.
+    public static final ValueLayout.OfLong C_LONG = ValueLayout.JAVA_LONG;
 
     static final boolean TRACE_DOWNCALLS = Boolean.getBoolean("jextract.trace.downcalls");
 

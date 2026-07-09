@@ -1,123 +1,105 @@
 package dev.hallock.zstd.test;
 
-import dev.hallock.zstd.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.hallock.zstd.Zstd;
+import dev.hallock.zstd.ZstdCompressionContext;
+import dev.hallock.zstd.ZstdDecompressionContext;
+import dev.hallock.zstd.ZstdEndDirective;
+import dev.hallock.zstd.ZstdInputBuffer;
+import dev.hallock.zstd.ZstdOutputBuffer;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+/**
+ * Behavior of the streaming end directives. The raw enum values are pinned against the native
+ * header in {@link ZstdAbiDriftTest}.
+ */
+@ZstdTest
 class ZstdDirectiveTest {
 
-    @Test
-    void testEndDirectiveValues() {
-        Assertions.assertEquals(0, ZstdEndDirective.CONTINUE.value());
-        assertEquals(1, ZstdEndDirective.FLUSH.value());
-        assertEquals(2, ZstdEndDirective.END.value());
-    }
+  @Test
+  void testEndDirectiveContinue(Zstd zstd) {
+    byte[] data = "test data".repeat(10).getBytes(StandardCharsets.UTF_8);
 
-    @Test
-    void testEndDirectiveFromValue() {
-        assertTrue(ZstdEndDirective.fromValue(0).isPresent());
-        assertTrue(ZstdEndDirective.fromValue(1).isPresent());
-        assertTrue(ZstdEndDirective.fromValue(2).isPresent());
-        assertFalse(ZstdEndDirective.fromValue(99).isPresent());
-        
-        assertEquals(ZstdEndDirective.CONTINUE, ZstdEndDirective.fromValue(0).get());
-        assertEquals(ZstdEndDirective.FLUSH, ZstdEndDirective.fromValue(1).get());
-        assertEquals(ZstdEndDirective.END, ZstdEndDirective.fromValue(2).get());
-    }
+    try (Arena arena = Arena.ofConfined();
+        ZstdCompressionContext ctx = zstd.createCompressionContext()) {
 
-    @Test
-    void testResetDirectiveValues() {
-        Assertions.assertEquals(0, ZstdResetDirective.NONE.value());
-        assertEquals(1, ZstdResetDirective.SESSION_ONLY.value());
-        assertEquals(2, ZstdResetDirective.PARAMETERS.value());
-        assertEquals(3, ZstdResetDirective.SESSION_AND_PARAMETERS.value());
-    }
+      MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
+      MemorySegment output = arena.allocate(zstd.compressBound(data.length));
 
-    @Test
-    void testResetDirectiveFromValue() {
-        assertTrue(ZstdResetDirective.fromValue(0).isPresent());
-        assertTrue(ZstdResetDirective.fromValue(1).isPresent());
-        assertTrue(ZstdResetDirective.fromValue(2).isPresent());
-        assertTrue(ZstdResetDirective.fromValue(3).isPresent());
-        assertFalse(ZstdResetDirective.fromValue(99).isPresent());
+      ZstdInputBuffer inBuf = zstd.createInputBuffer(arena, input);
+      ZstdOutputBuffer outBuf = zstd.createOutputBuffer(arena, output);
 
-        assertEquals(ZstdResetDirective.NONE, ZstdResetDirective.fromValue(0).get());
-        assertEquals(ZstdResetDirective.SESSION_ONLY, ZstdResetDirective.fromValue(1).get());
-        assertEquals(ZstdResetDirective.PARAMETERS, ZstdResetDirective.fromValue(2).get());
-        assertEquals(ZstdResetDirective.SESSION_AND_PARAMETERS, ZstdResetDirective.fromValue(3).get());
-    }
+      ctx.compressStream(outBuf, inBuf, ZstdEndDirective.CONTINUE);
 
-    @Test
-    void testEndDirectiveContinue() throws Exception {
-        byte[] data = "test data".repeat(10).getBytes(StandardCharsets.UTF_8);
-        
-        try (Arena arena = Arena.ofConfined();
-             ZstdCompressionContext ctx = new ZstdCompressionContext()) {
-            
-            MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
-            MemorySegment output = arena.allocate(Zstd.compressBound(data.length));
-            
-            ZstdInputBuffer inBuf = new ZstdInputBuffer(arena, input);
-            ZstdOutputBuffer outBuf = new ZstdOutputBuffer(arena, output);
-            
-            inBuf.size(data.length);
-            inBuf.position(0);
-            outBuf.position(0);
-            
-            ctx.compressStream(outBuf, inBuf, ZstdEndDirective.CONTINUE);
-            assertTrue(outBuf.position() >= 0);
-        }
+      // With ample output space, CONTINUE must consume all input (it may buffer it internally
+      // without producing output yet).
+      assertEquals(inBuf.size(), inBuf.position(), "CONTINUE did not consume all input");
     }
+  }
 
-    @Test
-    void testEndDirectiveFlush() throws Exception {
-        byte[] data = "flush test".getBytes(StandardCharsets.UTF_8);
-        
-        try (Arena arena = Arena.ofConfined();
-             ZstdCompressionContext ctx = new ZstdCompressionContext()) {
-            
-            MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
-            MemorySegment output = arena.allocate(Zstd.compressBound(data.length));
-            
-            ZstdInputBuffer inBuf = new ZstdInputBuffer(arena, input);
-            ZstdOutputBuffer outBuf = new ZstdOutputBuffer(arena, output);
-            
-            inBuf.size(data.length);
-            inBuf.position(0);
-            outBuf.position(0);
-            
-            ctx.compressStream(outBuf, inBuf, ZstdEndDirective.FLUSH);
-            assertTrue(outBuf.position() >= 0);
-        }
-    }
+  @Test
+  void testEndDirectiveFlush(Zstd zstd) {
+    byte[] data = "flush test".getBytes(StandardCharsets.UTF_8);
 
-    @Test
-    void testEndDirectiveEnd() throws Exception {
-        byte[] data = "end test".getBytes(StandardCharsets.UTF_8);
-        
-        try (Arena arena = Arena.ofConfined();
-             ZstdCompressionContext ctx = new ZstdCompressionContext()) {
-            
-            MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
-            MemorySegment output = arena.allocate(Zstd.compressBound(data.length));
-            
-            ZstdInputBuffer inBuf = new ZstdInputBuffer(arena, input);
-            ZstdOutputBuffer outBuf = new ZstdOutputBuffer(arena, output);
-            
-            inBuf.size(data.length);
-            inBuf.position(0);
-            outBuf.position(0);
-            
-            ctx.compressStream(outBuf, inBuf, ZstdEndDirective.END);
-            assertTrue(outBuf.position() > 0);
-        }
+    try (Arena arena = Arena.ofConfined();
+        ZstdCompressionContext ctx = zstd.createCompressionContext();
+        ZstdDecompressionContext dctx = zstd.createDecompressionContext()) {
+
+      MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
+      MemorySegment output = arena.allocate(zstd.compressBound(data.length));
+
+      ZstdInputBuffer inBuf = zstd.createInputBuffer(arena, input);
+      ZstdOutputBuffer outBuf = zstd.createOutputBuffer(arena, output);
+
+      long remaining;
+      do {
+        remaining = ctx.compressStream(outBuf, inBuf, ZstdEndDirective.FLUSH);
+      } while (remaining > 0);
+
+      // Everything consumed so far must be decodable at a flush boundary.
+      assertEquals(inBuf.size(), inBuf.position());
+      MemorySegment decompressed = arena.allocate(data.length);
+      ZstdInputBuffer dIn = zstd.createInputBuffer(arena, output.asSlice(0, outBuf.position()));
+      ZstdOutputBuffer dOut = zstd.createOutputBuffer(arena, decompressed);
+      dctx.decompressStream(dOut, dIn);
+
+      assertEquals(data.length, dOut.position(), "FLUSH boundary did not expose all input");
+      assertArrayEquals(data, decompressed.toArray(ValueLayout.JAVA_BYTE));
     }
+  }
+
+  @Test
+  void testEndDirectiveEnd(Zstd zstd) {
+    byte[] data = "end test".getBytes(StandardCharsets.UTF_8);
+
+    try (Arena arena = Arena.ofConfined();
+        ZstdCompressionContext ctx = zstd.createCompressionContext()) {
+
+      MemorySegment input = arena.allocateFrom(ValueLayout.JAVA_BYTE, data);
+      MemorySegment output = arena.allocate(zstd.compressBound(data.length));
+
+      ZstdInputBuffer inBuf = zstd.createInputBuffer(arena, input);
+      ZstdOutputBuffer outBuf = zstd.createOutputBuffer(arena, output);
+
+      long remaining;
+      do {
+        remaining = ctx.compressStream(outBuf, inBuf, ZstdEndDirective.END);
+      } while (remaining > 0);
+
+      // END must produce a complete frame decodable by simple decompression.
+      assertTrue(outBuf.position() > 0);
+      MemorySegment decompressed = arena.allocate(data.length);
+      long size = zstd.decompress(decompressed, data.length, output, outBuf.position());
+
+      assertEquals(data.length, size);
+      assertArrayEquals(data, decompressed.toArray(ValueLayout.JAVA_BYTE));
+    }
+  }
 }
-

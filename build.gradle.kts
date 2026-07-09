@@ -1,98 +1,74 @@
 plugins {
-    `java-library`
+    id("dev.hallock.zstd.java")
+    id("dev.hallock.zstd.quality")
+    id("dev.hallock.zstd.publish")
     alias(libs.plugins.graalvm.buildtools)
-    alias(libs.plugins.maven.publish)
 }
 
-group = "dev.hallock.zstd"
-version = findProperty("version") ?: "dev"
-
-repositories {
-    mavenCentral()
-}
+// CI opt-in: -PtestBundledNatives tests against the bundled natives from :platforms; values
+// other than ""/true/false fail fast so a workflow typo cannot test the wrong library.
+val testBundledNatives = providers.gradleProperty("testBundledNatives")
+    .map {
+        when (it.lowercase()) {
+            "", "true" -> true
+            "false" -> false
+            else -> throw GradleException(
+                "Unrecognized -PtestBundledNatives value '$it'; use true or false"
+            )
+        }
+    }
+    .orElse(false)
+    .get()
 
 dependencies {
-    api(libs.jspecify)
     api(project(":bindings"))
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platform.launcher)
+    // The core public API carries the JSpecify nullness annotations.
+    api(libs.jspecify)
+    if (testBundledNatives) {
+        testRuntimeOnly(project(":platforms"))
+    }
 }
 
 tasks.test {
-    useJUnitPlatform()
-    jvmArgs("--enable-native-access=dev.hallock.zstd.bindings")
-}
-
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(25)
-    modularity.inferModulePath = true
-}
-
-tasks.compileJava {
-    options.compilerArgs.add("-Xlint:all")
-    options.compilerArgs.add("-Werror")
-    options.encoding = "UTF-8"
-}
-
-tasks.javadoc {
-    val options = options as StandardJavadocDocletOptions
-    options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
+    val nativeAccessModules = buildList {
+        add("dev.hallock.zstd.bindings")
+        if (testBundledNatives) {
+            add("dev.hallock.zstd.platforms")
+        }
+    }
+    jvmArgs("--enable-native-access=${nativeAccessModules.joinToString(",")}")
 }
 
 graalvmNative {
     agent {
-        enabled.set(true)
+        enabled.set(providers.gradleProperty("nativeAgent").map(String::toBoolean).orElse(false))
         metadataCopy {
             inputTaskNames.add("test")
-            outputDirectories.add("src/main/resources/META-INF/native-image/dev.hallock.zstd")
+            outputDirectories.add("src/test/resources/META-INF/native-image/dev.hallock.zstd/zstd-java-test")
             mergeWithExisting.set(true)
         }
 
         modes {
             defaultMode = "standard"
             standard {
-                //TODO suppress globs
                 accessFilterFiles.from("src/test/resources/native-image/access-filter.json")
             }
         }
+    }
 
-        binaries {
-            named("test") {
-                buildArgs.add("-O0")
-                jvmArgs.add("--enable-native-access=ALL-UNNAMED") //TODO figure out why this isn't using modules
-            }
+    binaries {
+        named("test") {
+            buildArgs.add("-O0")
+            // native-build-tools builds the test image from the class path, so everything in the
+            // image runs in the unnamed module; module-targeted grants cannot apply here.
+            jvmArgs.add("--enable-native-access=ALL-UNNAMED")
         }
     }
 }
 
 mavenPublishing {
-    publishToMavenCentral(automaticRelease = false)
-    signAllPublications()
-
     pom {
         name.set("zstd-java")
         description.set("Java (FFM) API for Zstandard (zstd)")
-        inceptionYear.set("2026")
-        url.set("https://github.com/ryanhallock/zstd-java/")
-        licenses {
-            license {
-                name.set("The MIT License")
-                url.set("https://opensource.org/licenses/MIT")
-                distribution.set("https://opensource.org/licenses/MIT")
-            }
-        }
-        developers {
-            developer {
-                id.set("ryanhallock")
-                name.set("Ryan Hallock")
-                url.set("https://github.com/ryanhallock/")
-            }
-        }
-        scm {
-            url.set("https://github.com/ryanhallock/zstd-java/")
-            connection.set("scm:git:git://github.com/ryanhallock/zstd-java.git")
-            developerConnection.set("scm:git:ssh://git@github.com/ryanhallock/zstd-java.git")
-        }
     }
 }

@@ -1,0 +1,56 @@
+{
+  "reflection": [
+    {
+      "type": "dev.hallock.zstd.test.TestVectors"
+    },
+    {
+      "type": "dev.hallock.zstd.test.ZstdParameterResolver",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "dev.hallock.zstd.test.package-info"
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.commons.support.scanning.ClasspathScanner"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.engine.TestEngine"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherSessionListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.PostDiscoveryFilter"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.TestExecutionListener"
+    },
+    {
+      "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
+    },
+    {
+      "glob": "junit-platform.properties"
+    },
+    {
+      "glob": "dev/hallock/zstd/test/vectors/*"
+    }
+  ],
+  "serialization": [
+    {
+      "type": "org.junit.platform.engine.UniqueId$SerializedForm"
+    }
+  ]
+}

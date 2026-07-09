@@ -1,0 +1,58 @@
+name: Build platform native
+description: Builds and stages zstd for the current runner
+inputs:
+  resource-path:
+    description: Package-relative destination below the platforms package
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Read zstd pin
+      id: zstd
+      shell: bash
+      run: |
+        ref=$(grep -Ev '^[[:space:]]*(#|$)' .github/zstd-version | head -n1 | awk '{print $1}' || true)
+        [[ "$ref" =~ ^[0-9a-f]{40}$ ]] || { echo "Malformed zstd pin: '$ref'" >&2; exit 1; }
+        echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    - name: Check out zstd
+      uses: actions/checkout@v7
+      with:
+        repository: facebook/zstd
+        ref: ${{ steps.zstd.outputs.ref }}
+        path: zstd-platform-source
+    - name: Configure zstd
+      shell: bash
+      run: |
+        arguments=(
+          -S zstd-platform-source/build/cmake
+          -B zstd-platform-build
+          -DZSTD_BUILD_PROGRAMS=OFF
+          -DZSTD_BUILD_CONTRIB=OFF
+          -DZSTD_BUILD_TESTS=OFF
+          -DZSTD_BUILD_STATIC=OFF
+          -DZSTD_BUILD_SHARED=ON
+          -DCMAKE_BUILD_TYPE=Release
+        )
+        if [[ "$RUNNER_OS" == macOS ]]; then
+          arguments+=(-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0)
+        fi
+        cmake "${arguments[@]}"
+    - name: Build zstd
+      shell: bash
+      run: cmake --build zstd-platform-build --config Release --parallel
+    - name: Stage native resource
+      shell: bash
+      env:
+        RESOURCE_PATH: ${{ inputs.resource-path }}
+      run: |
+        case "$RUNNER_OS" in
+          Linux) library=$(find zstd-platform-build -name 'libzstd.so' -type l -o -name 'libzstd.so' -type f | head -1) ;;
+          macOS) library=$(find zstd-platform-build -name 'libzstd.dylib' | head -1) ;;
+          Windows) library=$(find zstd-platform-build -iname 'zstd.dll' | head -1) ;;
+          *) echo "Unsupported runner OS: $RUNNER_OS" >&2; exit 1 ;;
+        esac
+        test -n "$library"
+        destination="platforms-native/dev/hallock/zstd/platforms/impl/natives/$RESOURCE_PATH"
+        mkdir -p "$(dirname "$destination")"
+        cp -L "$library" "$destination"
+        python -c 'import hashlib, pathlib, sys; p=pathlib.Path(sys.argv[1]); pathlib.Path(str(p)+".sha256").write_text(hashlib.sha256(p.read_bytes()).hexdigest()+"\n", encoding="ascii")' "$destination"

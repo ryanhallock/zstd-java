@@ -1,0 +1,25 @@
+name: 'Setup Build Environment'
+description: 'Installs zstd from source, sets up GraalVM JDK 25, and configures Gradle'
+runs:
+  using: "composite"
+  steps:
+    - name: Install zstd from source
+      shell: bash
+      run: |
+        ZSTD_REF=$(grep -Ev '^[[:space:]]*(#|$)' .github/zstd-version | head -n1 | awk '{print $1}' || true)
+        [[ "$ZSTD_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Malformed zstd pin: '$ZSTD_REF'" >&2; exit 1; }
+        git init zstd
+        git -C zstd fetch --depth 1 https://github.com/facebook/zstd.git "$ZSTD_REF"
+        git -C zstd checkout FETCH_HEAD
+        cd zstd
+        make -j$(nproc)
+        sudo make PREFIX=/usr install
+        sudo ldconfig
+        cd ..
+    - name: Set up JDK 25
+      uses: actions/setup-java@v5
+      with:
+        java-version: '25'
+        distribution: 'graalvm'
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v6

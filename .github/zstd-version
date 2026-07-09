@@ -1,0 +1,2 @@
+# Format: "<commit-sha> <tag>"; CI checks out the SHA (tags are mutable).
+f8745da6ff1ad1e7bab384bd1f9d742439278e99 v1.5.7

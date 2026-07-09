@@ -1,31 +1,47 @@
 package dev.hallock.zstd;
 
-import dev.hallock.zstd.bindings.ZSTD_h;
-
-import java.util.Optional;
-
+/**
+ * Directives for resetting compression or decompression contexts for reuse. These correspond to
+ * ZSTD_ResetDirective options in the native library.
+ *
+ * @implNote The numeric values are part of the frozen zstd ABI and are hardcoded here so that
+ *     loading this class does not force the native library to load.
+ */
 public enum ZstdResetDirective {
-    NONE(0),
-    SESSION_ONLY(ZSTD_h.ZSTD_reset_session_only()),
-    PARAMETERS(ZSTD_h.ZSTD_reset_parameters()),
-    SESSION_AND_PARAMETERS(ZSTD_h.ZSTD_reset_session_and_parameters());
 
-    private final int value;
+  /**
+   * Reset the active session state only. Any frame in progress is abandoned and internal buffers
+   * are cleared so a new stream can start, while all configured parameters and any loaded or
+   * referenced dictionary are retained. This is the required recovery path after a streaming
+   * operation fails.
+   */
+  SESSION_ONLY(1),
 
-    ZstdResetDirective(int value) {
-        this.value = value;
-    }
+  /**
+   * Reset all configured parameters to their defaults and drop any loaded or referenced dictionary
+   * or prefix. Keeps the session buffers intact; the native library reports an error if parameters
+   * are reset while a session is active (mid-frame).
+   */
+  PARAMETERS(2),
 
-    public int value() {
-        return this.value;
-    }
+  /**
+   * Fully reset both the session state and all parameters to default values. Clears all session
+   * buffers, loaded dictionaries, and reverts parameters.
+   */
+  SESSION_AND_PARAMETERS(3);
 
-    public static Optional<ZstdResetDirective> fromValue(int value) {
-        for (ZstdResetDirective strategy : ZstdResetDirective.values()) {
-            if (strategy.value() == value) {
-                return Optional.of(strategy);
-            }
-        }
-        return Optional.empty();
-    }
+  private final int value;
+
+  ZstdResetDirective(int value) {
+    this.value = value;
+  }
+
+  /**
+   * Returns the raw integer value of the directive used in the native Zstd library.
+   *
+   * @return the directive value
+   */
+  public int value() {
+    return this.value;
+  }
 }

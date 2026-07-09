@@ -1,36 +1,76 @@
 package dev.hallock.zstd;
 
-import dev.hallock.zstd.bindings.ZSTD_h;
-
-import java.util.Optional;
-
+/**
+ * Compression strategies for Zstd, representing speed vs ratio tradeoffs. Strategies are ordered
+ * from fastest (lowest compression ratio) to strongest (highest compression ratio).
+ *
+ * @implNote The numeric values are part of the frozen zstd ABI and are hardcoded here so that
+ *     loading this class does not force the native library to load.
+ */
 public enum ZstdStrategy {
-    FAST(ZSTD_h.ZSTD_fast()),
-    DFAST(ZSTD_h.ZSTD_dfast()),
-    GREEDY(ZSTD_h.ZSTD_greedy()),
-    LAZY(ZSTD_h.ZSTD_lazy()),
-    LAZY2(ZSTD_h.ZSTD_lazy2()),
-    BTLAZY2(ZSTD_h.ZSTD_btlazy2()),
-    BTOPT(ZSTD_h.ZSTD_btopt()),
-    BTULTRA(ZSTD_h.ZSTD_btultra()),
-    BTULTRA2(ZSTD_h.ZSTD_btultra2());
+  /**
+   * Fastest strategy. Uses a simple hash table to find matches. Designed for maximum throughput and
+   * minimum CPU usage.
+   */
+  FAST(1),
 
-    private final int value;
+  /**
+   * Double fast strategy. Uses two hash tables with different search depths to find longer matches
+   * quickly.
+   */
+  DFAST(2),
 
-    ZstdStrategy(int value) {
-        this.value = value;
-    }
+  /**
+   * Greedy strategy. Selects the first long match found at the current position without examining
+   * subsequent positions.
+   */
+  GREEDY(3),
 
-    public int value() {
-        return this.value;
-    }
+  /**
+   * Lazy strategy. For every position, checks if the next position has a better match before
+   * committing to the match found at the current position.
+   */
+  LAZY(4),
 
-    public static Optional<ZstdStrategy> fromValue(int value) {
-        for (ZstdStrategy strategy : ZstdStrategy.values()) {
-            if (strategy.value() == value) {
-                return Optional.of(strategy);
-            }
-        }
-        return Optional.empty();
-    }
+  /**
+   * Lazy 2 strategy. Similar to LAZY, but checks two bytes ahead instead of one to find even better
+   * matches.
+   */
+  LAZY2(5),
+
+  /**
+   * Binary tree lazy strategy. Uses double hash chains coupled with a binary tree search mechanism.
+   * Much stronger compression but slower.
+   */
+  BTLAZY2(6),
+
+  /**
+   * Binary tree optimal parser strategy. Performs optimal parsing (looks ahead and evaluates
+   * combinations of matches) using a binary tree index.
+   */
+  BTOPT(7),
+
+  /**
+   * Ultra strategy. Similar to BTOPT but uses more aggressive optimal parsing search parameters.
+   * Provides very high compression ratio at low compression speed.
+   */
+  BTULTRA(8),
+
+  /** Ultra 2 strategy. The strongest and slowest strategy. Performs exhaustive optimal parsing. */
+  BTULTRA2(9);
+
+  private final int value;
+
+  ZstdStrategy(int value) {
+    this.value = value;
+  }
+
+  /**
+   * Returns the raw integer value of the strategy used in the native Zstd library.
+   *
+   * @return the strategy value
+   */
+  public int value() {
+    return this.value;
+  }
 }

@@ -1,30 +1,44 @@
 package dev.hallock.zstd;
 
-import dev.hallock.zstd.bindings.ZSTD_h;
-
-import java.util.Optional;
-
+/**
+ * Directives for ending or flushing streaming compression operations. These correspond to
+ * ZSTD_EndDirective options in the native library.
+ *
+ * @implNote The numeric values are part of the frozen zstd ABI and are hardcoded here so that
+ *     loading this class does not force the native library to load.
+ */
 public enum ZstdEndDirective {
-    CONTINUE(ZSTD_h.ZSTD_e_continue()),
-    FLUSH(ZSTD_h.ZSTD_e_flush()),
-    END(ZSTD_h.ZSTD_e_end());
+  /**
+   * Continue standard buffering. The compressor will collect data into internal buffers and write
+   * output only when a full block is formed or when a flush is explicitly requested.
+   */
+  CONTINUE(0),
 
-    private final int value;
+  /**
+   * Flush all accumulated data. Forces the compressor to emit all currently buffered input data as
+   * a completed block, making it readable on the decompressor side. This creates a flush boundary.
+   */
+  FLUSH(1),
 
-    ZstdEndDirective(int value) {
-        this.value = value;
-    }
+  /**
+   * Flush all data and end the current frame. Emits all buffered data and appends the frame footer.
+   * The compressor must be called repeatedly with this directive until the return value is 0,
+   * indicating the frame is fully written.
+   */
+  END(2);
 
-    public int value() {
-        return this.value;
-    }
+  private final int value;
 
-    public static Optional<ZstdEndDirective> fromValue(int value) {
-        for (ZstdEndDirective strategy : ZstdEndDirective.values()) {
-            if (strategy.value() == value) {
-                return Optional.of(strategy);
-            }
-        }
-        return Optional.empty();
-    }
+  ZstdEndDirective(int value) {
+    this.value = value;
+  }
+
+  /**
+   * Returns the raw integer value of the directive used in the native Zstd library.
+   *
+   * @return the directive value
+   */
+  public int value() {
+    return this.value;
+  }
 }

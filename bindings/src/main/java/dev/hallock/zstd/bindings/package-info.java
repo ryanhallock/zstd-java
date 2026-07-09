@@ -1,8 +1,6 @@
 /**
- * ZSTD bindings for Java. These are low-level bindings to the native ZSTD library, and are not intended for direct use
- * by most users. Instead, they are used by higher-level APIs that provide a more user-friendly interface.
+ * Low-level bindings to the native zstd library. Most of this package is jextract output and is not
+ * intended for direct use; the {@code dev.hallock.zstd} module provides the supported Java API on
+ * top of it.
  */
-@NullMarked
 package dev.hallock.zstd.bindings;
-
-import org.jspecify.annotations.NullMarked;

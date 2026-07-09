@@ -22,7 +22,7 @@ public class ZSTD_h extends ZSTD_h$shared {
 
 
     static {
-        System.loadLibrary("zstd");
+        ZstdLibrary.load();
     }
 
     static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.loaderLookup()

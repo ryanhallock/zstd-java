@@ -1,18 +1,29 @@
 [versions]
 graalvm-buildtools = "1.1.6"
 jspecify = "1.0.0"
-junit = "6.0.3"
+junit = "6.1.1"
 jextract = "1.4.0"
 maven-publish = "0.37.0"
+errorprone-plugin = "5.1.0"
+errorprone-core = "2.50.0"
+spotless = "8.8.0"
+google-java-format = "1.35.0"
 
 [libraries]
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
-
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+errorprone-core = { group = "com.google.errorprone", name = "error_prone_core", version.ref = "errorprone-core" }
+google-java-format = { group = "com.google.googlejavaformat", name = "google-java-format", version.ref = "google-java-format" }
+spotless-plugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+errorprone-plugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "errorprone-plugin" }
+maven-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
+
 
 [plugins]
 graalvm-buildtools = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-buildtools" }
 jextract = { id = "de.infolektuell.jextract", version.ref = "jextract"}
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorprone-plugin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

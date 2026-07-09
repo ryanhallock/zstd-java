@@ -1,0 +1,112 @@
+# Builds the bundled zstd native for all six supported platforms,
+# then runs the full test suite against those natives on every supported OS.
+name: Platform Natives
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  platform-natives:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            resource: linux/x86_64/libzstd.so
+            artifact: zstd-linux-x86_64
+          - runner: ubuntu-22.04-arm
+            resource: linux/aarch64/libzstd.so
+            artifact: zstd-linux-aarch64
+          - runner: ubuntu-22.04
+            container: alpine:3.21
+            resource: linux-musl/x86_64/libzstd.so
+            artifact: zstd-linux-musl-x86_64
+          - runner: ubuntu-22.04-arm
+            container: alpine:3.21
+            resource: linux-musl/aarch64/libzstd.so
+            artifact: zstd-linux-musl-aarch64
+          - runner: macos-15-intel
+            resource: macos/x86_64/libzstd.dylib
+            artifact: zstd-macos-x86_64
+          - runner: macos-15
+            resource: macos/aarch64/libzstd.dylib
+            artifact: zstd-macos-aarch64
+          - runner: windows-2025
+            resource: windows/x86_64/zstd.dll
+            artifact: zstd-windows-x86_64
+          - runner: windows-11-vs2026-arm
+            resource: windows/aarch64/zstd.dll
+            artifact: zstd-windows-aarch64
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    steps:
+      - name: Prepare Alpine toolchain
+        if: ${{ matrix.container }}
+        shell: sh
+        run: apk add --no-cache bash build-base cmake git python3 && ln -sf /usr/bin/python3 /usr/bin/python
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-platform-native
+        with:
+          resource-path: ${{ matrix.resource }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: platforms-native
+
+  test:
+    needs: platform-natives
+    strategy:
+      fail-fast: false
+      matrix: # GraalVM where it ships a build; windows-aarch64 has neither GraalVM nor Corretto, so Liberica.
+        include:
+          - runner: ubuntu-22.04
+            jdk: graalvm
+          - runner: ubuntu-22.04-arm
+            jdk: graalvm
+          - runner: macos-15-intel
+            jdk: graalvm
+          - runner: macos-15
+            jdk: graalvm
+          - runner: windows-2025
+            jdk: graalvm
+          - runner: windows-11-vs2026-arm
+            jdk: liberica
+          - runner: ubuntu-22.04
+            container: bellsoft/liberica-openjdk-alpine-musl:25
+          - runner: ubuntu-22.04-arm
+            container: bellsoft/liberica-openjdk-alpine-musl:25
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Prepare Alpine container
+        if: ${{ matrix.container }}
+        shell: sh
+        run: apk add --no-cache bash git
+
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 25
+        if: ${{ matrix.jdk }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: ${{ matrix.jdk }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Assemble bundled platform resources
+        uses: actions/download-artifact@v4
+        with:
+          pattern: zstd-*
+          path: platforms/src/main/resources
+          merge-multiple: true
+
+      - name: Build and test against bundled natives
+        run: ./gradlew build -PtestBundledNatives=true
