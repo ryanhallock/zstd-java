@@ -51,7 +51,7 @@ jobs:
       - uses: ./.github/actions/build-platform-native
         with:
           resource-path: ${{ matrix.resource }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: platforms-native
