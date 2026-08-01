@@ -4,6 +4,10 @@ inputs:
   resource-path:
     description: Package-relative destination below the platforms package
     required: true
+  container-image:
+    description: Optional Alpine image to compile in via docker run (JS actions cannot run inside Alpine containers on ARM runners, so the job itself stays on the host)
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -20,8 +24,10 @@ runs:
         repository: facebook/zstd
         ref: ${{ steps.zstd.outputs.ref }}
         path: zstd-platform-source
-    - name: Configure zstd
+    - name: Configure and build zstd
       shell: bash
+      env:
+        CONTAINER_IMAGE: ${{ inputs.container-image }}
       run: |
         arguments=(
           -S zstd-platform-source/build/cmake
@@ -36,10 +42,15 @@ runs:
         if [[ "$RUNNER_OS" == macOS ]]; then
           arguments+=(-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0)
         fi
-        cmake "${arguments[@]}"
-    - name: Build zstd
-      shell: bash
-      run: cmake --build zstd-platform-build --config Release --parallel
+        if [[ -n "$CONTAINER_IMAGE" ]]; then
+          docker run --rm -v "$PWD:/work" -w /work "$CONTAINER_IMAGE" \
+            sh -c "apk add --no-cache build-base cmake >/dev/null \
+              && cmake $(printf '%q ' "${arguments[@]}") \
+              && cmake --build zstd-platform-build --parallel"
+        else
+          cmake "${arguments[@]}"
+          cmake --build zstd-platform-build --config Release --parallel
+        fi
     - name: Stage native resource
       shell: bash
       env:

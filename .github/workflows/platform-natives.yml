@@ -41,16 +41,12 @@ jobs:
             resource: windows/aarch64/zstd.dll
             artifact: zstd-windows-aarch64
     runs-on: ${{ matrix.runner }}
-    container: ${{ matrix.container }}
     steps:
-      - name: Prepare Alpine toolchain
-        if: ${{ matrix.container }}
-        shell: sh
-        run: apk add --no-cache bash build-base cmake git python3 && ln -sf /usr/bin/python3 /usr/bin/python
       - uses: actions/checkout@v7
       - uses: ./.github/actions/build-platform-native
         with:
           resource-path: ${{ matrix.resource }}
+          container-image: ${{ matrix.container }}
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
@@ -79,16 +75,10 @@ jobs:
           - runner: ubuntu-22.04-arm
             container: bellsoft/liberica-openjdk-alpine-musl:25
     runs-on: ${{ matrix.runner }}
-    container: ${{ matrix.container }}
     defaults:
       run:
         shell: bash
     steps:
-      - name: Prepare Alpine container
-        if: ${{ matrix.container }}
-        shell: sh
-        run: apk add --no-cache bash git
-
       - uses: actions/checkout@v7
 
       - name: Set up JDK 25
@@ -99,6 +89,7 @@ jobs:
           distribution: ${{ matrix.jdk }}
 
       - name: Setup Gradle
+        if: ${{ !matrix.container }}
         uses: gradle/actions/setup-gradle@v6
 
       - name: Assemble bundled platform resources
@@ -109,4 +100,13 @@ jobs:
           merge-multiple: true
 
       - name: Build and test against bundled natives
+        if: ${{ !matrix.container }}
         run: ./gradlew build -PtestBundledNatives=true
+
+      # JS actions cannot run inside Alpine containers on ARM runners, so the musl
+      # suite runs through docker instead of a job level container.
+      - name: Build and test against bundled natives (musl container)
+        if: ${{ matrix.container }}
+        run: >
+          docker run --rm -v "$PWD:/work" -w /work ${{ matrix.container }}
+          sh -c "./gradlew --no-daemon build -PtestBundledNatives=true"
