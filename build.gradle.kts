@@ -29,6 +29,11 @@ dependencies {
     }
 }
 
+sourceSets.test {
+    // The tests form their own module, so resources must live inside the module directory
+    output.setResourcesDir(java.classesDirectory)
+}
+
 tasks.test {
     val nativeAccessModules = buildList {
         add("dev.hallock.zstd.bindings")
