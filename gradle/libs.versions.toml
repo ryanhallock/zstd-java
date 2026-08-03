@@ -1,6 +1,6 @@
 [versions]
 graalvm-buildtools = "1.1.6"
-jspecify = "1.0.0"
+jspecify = "1.0.1"
 junit = "6.1.2"
 jextract = "1.4.0"
 maven-publish = "0.37.0"
