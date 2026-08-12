@@ -42,6 +42,11 @@ tasks.test {
         }
     }
     jvmArgs("--enable-native-access=${nativeAccessModules.joinToString(",")}")
+    systemProperty("dev.hallock.zstd.test.bundledNatives", testBundledNatives)
+    providers.gradleProperty("expectedZstdVersion").orNull?.let {
+        require(it.matches(Regex("[0-9]+"))) { "expectedZstdVersion must be numeric" }
+        systemProperty("dev.hallock.zstd.test.expectedVersion", it)
+    }
 }
 
 graalvmNative {
@@ -67,6 +72,7 @@ graalvmNative {
             // native-build-tools builds the test image from the class path, so everything in the
             // image runs in the unnamed module; module-targeted grants cannot apply here.
             jvmArgs.add("--enable-native-access=ALL-UNNAMED")
+            runtimeArgs.add("-Ddev.hallock.zstd.test.bundledNatives=$testBundledNatives")
         }
     }
 }

@@ -20,6 +20,14 @@ import org.junit.jupiter.api.Test;
 class ZstdAbiDriftTest {
 
   @Test
+  void loadedNativeVersionMatchesCiExpectation() {
+    String expected = System.getProperty("dev.hallock.zstd.test.expectedVersion");
+    if (expected != null) {
+      assertEquals(Integer.parseInt(expected), Zstd.zstd().versionNumber());
+    }
+  }
+
+  @Test
   void compressionParameterValuesMatchHeader() {
     assertEquals(
         ZSTD_h.ZSTD_c_compressionLevel(), ZstdCompressionParameter.COMPRESSION_LEVEL.value());

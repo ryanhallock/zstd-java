@@ -1,12 +1,19 @@
 name: 'Setup Build Environment'
 description: 'Installs zstd from source, sets up GraalVM JDK 25, and configures Gradle'
+inputs:
+  zstd-version-file:
+    description: 'File containing the pinned zstd commit to build'
+    required: false
+    default: '.github/zstd-version'
 runs:
   using: "composite"
   steps:
     - name: Install zstd from source
       shell: bash
+      env:
+        ZSTD_VERSION_FILE: ${{ inputs.zstd-version-file }}
       run: |
-        ZSTD_REF=$(grep -Ev '^[[:space:]]*(#|$)' .github/zstd-version | head -n1 | awk '{print $1}' || true)
+        ZSTD_REF=$(grep -Ev '^[[:space:]]*(#|$)' "$ZSTD_VERSION_FILE" | head -n1 | awk '{print $1}' || true)
         [[ "$ZSTD_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Malformed zstd pin: '$ZSTD_REF'" >&2; exit 1; }
         git init zstd
         git -C zstd fetch --depth 1 https://github.com/facebook/zstd.git "$ZSTD_REF"

@@ -56,11 +56,11 @@ public final class Zstd {
    *
    * <p>If loading fails, this method (and not class initialization) reports the failure: every call
    * throws {@link IllegalStateException} carrying the original loading failure as its cause. The
-   * native library must be at least version 1.4.0; an older library is reported the same way.
+   * native library must be at least version 1.5.6; an older library is reported the same way.
    *
    * @return the singleton instance
    * @throws IllegalStateException if the native zstd library cannot be loaded or is older than
-   *     1.4.0
+   *     1.5.6
    */
   public static Zstd zstd() {
     Zstd instance = Holder.INSTANCE;
@@ -752,13 +752,14 @@ public final class Zstd {
       Zstd instance = null;
       Throwable failure = null;
       try {
-        // The version probe doubles as the load check; the 1.4.0 floor covers ZSTD_compress2,
-        // ZSTD_compressStream2, and refCDict/refDDict, which this API depends on as stable API.
-        if (ZSTD_h.ZSTD_versionNumber() < 10400) {
+        // The version probe doubles as the load check. The 1.5.6 floor covers the complete public
+        // parameter surface, including ZSTD_c_targetCBlockSize, as well as ZSTD_defaultCLevel and
+        // ZSTD_getDictID_fromCDict, which were added in 1.5.0.
+        if (ZSTD_h.ZSTD_versionNumber() < 10506) {
           throw new IllegalStateException(
               "Native zstd library is version "
                   + ZSTD_h.ZSTD_versionString().getString(0)
-                  + ", but this API requires at least 1.4.0");
+                  + ", but this API requires at least 1.5.6");
         }
         instance = new Zstd();
       } catch (Throwable t) {

@@ -213,18 +213,17 @@ class ZstdStreamingTest {
         long originalPosition = inBuffer.position();
         inBuffer.size(originalPosition + currentChunk);
 
-        ZstdEndDirective directive =
-            (inBuffer.size() == src.byteSize()) ? ZstdEndDirective.END : ZstdEndDirective.CONTINUE;
-        cctx.compressStream(outBuffer, inBuffer, directive);
+        cctx.compressStream(outBuffer, inBuffer, ZstdEndDirective.CONTINUE);
 
         // Restore actual size for loop condition
         inBuffer.size(src.byteSize());
       }
 
-      // Finish compression if we haven't already with END
-      // Ensure ending works properly
-      long remaining = cctx.compressStream(outBuffer, inBuffer, ZstdEndDirective.END);
-      Assertions.assertEquals(0, remaining, "Stream not fully flushed");
+      // End the frame exactly once, repeating only while zstd reports buffered output.
+      long remaining;
+      do {
+        remaining = cctx.compressStream(outBuffer, inBuffer, ZstdEndDirective.END);
+      } while (remaining != 0);
 
       long compressedSize = outBuffer.position();
       MemorySegment actualCompressed = compressedDst.asSlice(0, compressedSize);

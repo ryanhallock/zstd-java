@@ -8,7 +8,7 @@ built on the Foreign Function & Memory API.
 - Java 25 or later.
 - A zstd native library, one of:
   - the bundled zstd v1.5.7 shipped in the optional `platforms` artifact, or
-  - a system installed `libzstd`, version 1.4.0 or later (the minimum is enforced at load).
+  - a system installed `libzstd`, version 1.5.6 or later (the minimum is enforced at load).
 
 ## Installation
 

@@ -1,8 +1,12 @@
+import dev.hallock.zstd.bindings.ZstdLibraryProvider;
+
 module dev.hallock.zstd.test {
   requires dev.hallock.zstd;
   requires dev.hallock.zstd.bindings;
   requires org.junit.jupiter.api;
   requires org.junit.jupiter.params;
+
+  uses ZstdLibraryProvider;
 
   exports dev.hallock.zstd.test;
 
