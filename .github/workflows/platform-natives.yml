@@ -90,7 +90,7 @@ jobs:
 
       - name: Setup Gradle
         if: ${{ !matrix.container }}
-        uses: gradle/actions/setup-gradle@v6.2.0
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Assemble bundled platform resources
         uses: actions/download-artifact@v8
