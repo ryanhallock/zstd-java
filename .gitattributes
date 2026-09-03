@@ -1,6 +1,6 @@
-# All text is LF, in the repo and at checkout on every platform. Test fixtures are
-# checksummed byte for byte, so binary types are never converted.
 * text=auto eol=lf
 *.bat text eol=crlf
+# Binary files are never converted or merged as text
 *.bin binary
 *.zst binary
+*.jar binary
